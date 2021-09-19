@@ -1,0 +1,6 @@
+- name : waypoint-install
+  hosts: ns-1
+  tasks:
+    - name: Install to nomad
+      command: waypoint install -platform=nomad -nomad-dc=cwdc-os-1 -accept-tos
+      
