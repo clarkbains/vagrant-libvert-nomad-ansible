@@ -7,6 +7,7 @@ I haven't been able to find a solution for how to get ansible + vagrant + multip
  - 4 simultaneous executions, each provisioning all 4 at a time (apt lockfile crashes galore)
  - 4 sequential executions, each provisioning all 4 at a time (kinda works, but is slow)
  - 4 sequential executions, provisioning a host, then the next, with each execution (what it currently does)
+
 Ideally I would want 1 execution, provisioning all 4 at a time, as that would be pretty fast, but here we are.
 
 ## Cloning
@@ -15,6 +16,7 @@ Clone this repo recursively
 ## Setup
 Run `vagrant up --parallel` to start the VMs and configuration. Then run `vagrant ssh ns-1`, and get the ip address. Then export the env variable with `export NOMAD_ADDR='http://$NS-1-IP-ADDR:4646'`, and run `waypoint install -platform=nomad -nomad-dc=cwdc-os-1 -accept-tos`. This will setup your environment to have access to waypoint. Visit waypoint, at the same ip, on port 9702, using https. Follow the instructions. Run the `waypoint.sh` file to make it so the waypoint runner can access the docker daemons for remote build capability.
 
+Go into the nomad-configs directory, and assuming you have nomad on your own computer, run `nomad run traefik.hcl` to start up traefik 
 
 ## Building
 Start your local docker daemon if you have one, then go to the nomad-waypoint-integration-tests submodule. Run `waypoint init`, then visit the waypoint web ui. You should see the project appear. Click in the project, and manage settings. Create the following input variables:
@@ -29,5 +31,7 @@ Start your local docker daemon if you have one, then go to the nomad-waypoint-in
   - `waypoint up` (Only works if you have a running docker daemon, and permission to use it)
   - `waypoint logs`
   - `waypoint exec bash`
+
+  Once it has been deployed, the traefik configuration means 
 
   If it fails to push to ghcr, check your variables in waypoint. Sometimes they dissapear when you run `waypoint init -update` and make certain changes to the waypoint.hcl file

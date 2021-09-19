@@ -17,11 +17,9 @@
         repo: deb https://download.docker.com/linux/ubuntu bionic stable
         state: present
 
-
     - name: Update
       apt: 
         update_cache: yes
-
 
     - name: Install required system packages
       apt: 
@@ -31,6 +29,19 @@
     - name: Install docker-ce
       apt: name=docker-ce state=latest
 
+- name : Server Setup
+  hosts: servers
+  become: true
+  tasks:
+
+    - name: Disable auto updates
+      command: dpkg --configure -a
+
+    - name: Install JQ
+      apt: 
+        name: [ 'jq']
+        state: latest
+        
 - name : hashicorp-install
   hosts: [clients, servers]
   become: true
