@@ -13,7 +13,8 @@ Ideally I would want 1 execution, provisioning all 4 at a time, as that would be
 Clone this repo recursively
 
 ## Setup
-Run `vagrant up --parallel` to start the VMs and configuration. Then run `vagrant ssh ns-1`, and get the ip address. Then export the env variable with `export NOMAD_ADDR='http://$NS-1-IP-ADDR:4646'`, and run `waypoint install -platform=nomad -nomad-dc=cwdc-os-1 -accept-tos`. This will setup your environment to have access to waypoint. Visit waypoint, at the same ip, on port 9702, using https. Follow the instructions.
+Run `vagrant up --parallel` to start the VMs and configuration. Then run `vagrant ssh ns-1`, and get the ip address. Then export the env variable with `export NOMAD_ADDR='http://$NS-1-IP-ADDR:4646'`, and run `waypoint install -platform=nomad -nomad-dc=cwdc-os-1 -accept-tos`. This will setup your environment to have access to waypoint. Visit waypoint, at the same ip, on port 9702, using https. Follow the instructions. Run the `waypoint.sh` file to make it so the waypoint runner can access the docker daemons for remote build capability.
+
 
 ## Building
 Start your local docker daemon if you have one, then go to the nomad-waypoint-integration-tests submodule. Run `waypoint init`, then visit the waypoint web ui. You should see the project appear. Click in the project, and manage settings. Create the following input variables:
