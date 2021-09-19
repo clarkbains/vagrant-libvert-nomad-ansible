@@ -1,0 +1,161 @@
+- name : docker-install
+  hosts: clients
+  become: true
+  tasks:
+
+    - name: Disable auto updates
+      command: dpkg --configure -a
+   
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+
+    - name: Update
+      apt: 
+        update_cache: yes
+
+
+    - name: Install required system packages
+      apt: 
+        name: [ 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'python3-pip', 'virtualenv', 'python3-setuptools']
+        state: latest
+
+    - name: Install docker-ce
+      apt: name=docker-ce state=latest
+
+- name : hashicorp-install
+  hosts: [clients, servers]
+  become: true
+  tasks:
+    - name: Add Hashicorp GPG apt Key
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+   
+    - name: Add Hashicorp Repository
+      apt_repository:
+        repo: deb https://apt.releases.hashicorp.com bionic main
+        state: present
+    
+    - name: Install Nomad
+      apt: update_cache=yes name={{ item }} state=latest
+      loop: ['nomad', 'consul', 'vault', 'waypoint']
+
+
+- name : consul-all-init
+  hosts: [clients, servers]
+  become: true
+  tasks:
+    - name: Generate Key
+      command: echo 'Iq3AKLndYwD5DjrYN+1Esv17BGdATAlx+9nfNUqpchM='
+      run_once: true
+      register: consul_key
+      when: inventory_hostname == ansible_play_hosts_all[0]
+
+    - name: Server Ip
+      shell: 'ip address show eth0 | grep --only-matching -P "(\d*\.){3}.\d*" | head -n 1'
+      register: ip
+      run_once: true
+      delegate_to: ns-1
+
+    - name: Make consul config folder
+      file: 
+        path: /etc/consul.d
+        state: directory
+        owner: consul
+        group: consul
+        mode: "700"
+
+    - name: Install Config
+      template:
+        src: configs/consul/consul.hcl
+        owner: consul
+        group: consul
+        mode: "600"
+        dest: /etc/consul.d/
+
+    - name: Patch consul service
+      ansible.posix.patch:
+        src: configs/consul/consul.service.patch
+        dest: /lib/systemd/system/consul.service
+
+
+- name : consul-all-init
+  hosts: servers
+  become: true
+  tasks:
+    - name: Install Server Config
+      template:
+        src: configs/consul/server.hcl
+        owner: consul
+        group: consul
+        mode: "600"
+        dest: /etc/consul.d/
+
+
+
+- name : Install common Nomad Config
+  hosts: [clients, servers]
+  become: true
+  tasks:
+    - name: Delete existing config
+      file:
+        state: absent
+        path: /etc/nomad.d/nomad.hcl
+    - name: Install Common Config
+      template:
+        src: configs/nomad/common.hcl
+        owner: root
+        group: root
+        mode: "640"
+        dest: /etc/nomad.d/ 
+
+- name : Install Client Nomad Config
+  hosts: clients
+  become: true
+  tasks:
+    - name: Install Config
+      template:
+        src: configs/nomad/client.hcl
+        owner: root
+        group: root
+        mode: "640"
+        dest: /etc/nomad.d/client.hcl
+
+- name : Install Server Nomad Config
+  hosts: servers
+  become: true
+  tasks:
+    - name: Install Config
+      template:
+        src: configs/nomad/server.hcl
+        owner: root
+        group: root
+        mode: "640"
+        dest: /etc/nomad.d/server.hcl
+
+
+- name : hashicorp-service-start
+  hosts: [clients, servers]
+  become: true
+  tasks:
+    - name: Start and Enable Consul
+      ansible.builtin.systemd:
+        name: consul
+        daemon_reload: yes
+        enabled: true
+        state: started
+    - name: Start and Enable nomad
+      ansible.builtin.systemd:
+        name: nomad
+        daemon_reload: yes
+        enabled: true
+        state: started
