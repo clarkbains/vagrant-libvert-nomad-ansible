@@ -59,7 +59,6 @@ Vagrant.configure(2) do |config|
                 v.memory = 2500
             end
             if i == NOMAD_SERVER_COUNT
-                #Apt freaks out when done without an ansible limit, so we first install everything in serial
                 config.vm.provision :ansible do |ansible|
                     ansible.playbook = "provisioning/playbook_pre.yml"
                     #ansible.limit = "all"
