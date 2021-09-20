@@ -36,12 +36,14 @@ job "traefik" {
         network_mode = "host"
 
         volumes = [
-          "local/traefik.toml:/etc/traefik/traefik.toml",
+          "local/traefik.toml:/etc/traefik/traefik.toml"
         ]
       }
 
       template {
         data = <<EOF
+[serversTransport]
+  insecureSkipVerify = true
 [entryPoints]
     [entryPoints.http]
     address = ":8080"

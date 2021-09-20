@@ -1,5 +1,5 @@
 job "demo-webapp" {
-  datacenters = ["dc1"]
+  datacenters = ["cwdc-os-1"]
 
   group "demo" {
     count = 3

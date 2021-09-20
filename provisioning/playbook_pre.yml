@@ -41,7 +41,7 @@
       apt: 
         name: [ 'jq']
         state: latest
-        
+
 - name : hashicorp-install
   hosts: [clients, servers]
   become: true
@@ -86,7 +86,7 @@
       delegate_to: ns-1
 
     - name: Server Ip
-      shell: 'ip address show eth0 | grep --only-matching -P "(\d*\.){3}.\d*" | head -n 1'
+      shell: 'ip address show eth1 | grep --only-matching -P "(\d*\.){3}.\d*" | head -n 1'
       register: ip
       changed_when: false
       run_once: true

@@ -1,10 +1,8 @@
 if [[ ! `consul members | wc -l` -eq "5" ]]; then exit 1; fi
 echo "Consul has members"
-echo "Nomad can be reached at http://`ip address show eth0 | grep --only-matching -P "(\d*\.){3}.\d*" | head -n 1`:4646"
+echo "Nomad can be reached at http://`ip address show eth1 | grep --only-matching -P "(\d*\.){3}.\d*" | head -n 1`:4646"
 echo "Installing Waypoint"
-#waypoint install -platform=nomad -nomad-dc=cwdc-os-1 -accept-tos
+#waypoint install -platform=nomad -nomad-dc=cwdc-os-1 -accept-tos -nomad-consul-service -nomad-annotate-service="traefik.http.routers.waypoint.rule=Host(`waypoint.cbains.ca`)"
 nomad job inspect waypoint-runner > waypoint-runner.nomad
-jq '.Job.TaskGroups[0].Tasks[0].Config += {volumes:["/run/docker.sock:/run/docker.sock"]}' waypoint-runner.nomad > waypoint-runner-docker.nomad
-#You can't use the cli to submit a json job, and you can't get back the original HCL spec. So use the http api to submit the job
+jq '.Job.TaskGroups[0].Tasks[0].Config += {volumes:["/run/docker.sock:/run/docker.sock"]}' waypoint-runner.nomad  > waypoint-runner-docker.nomad
 curl -XPOST -H "Content-Type: application/json" -d @waypoint-runner-docker.nomad http://localhost:4646/v1/jobs 2> /dev/null
-
